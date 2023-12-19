@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1001306198827",
+    "project_id": "pulselink-back-end-2e551",
+    "storage_bucket": "pulselink-back-end-2e551.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1001306198827:android:7e44747e6cff5e419a6b6e",
+        "android_client_info": {
+          "package_name": "org.meicode.socialmediaapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzjjk0ZkNq-PnCgLWBfEcgtFvcYVD6wlg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

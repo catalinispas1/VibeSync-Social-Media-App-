@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_main">
+
+    <ImageButton
+        android:id="@+id/go_back_button"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/back_icon"
+        app:tint="@color/my_secondary"
+        android:layout_margin="15dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        tools:context=".LoginActivity">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="65dp"
+            android:fontFamily="monospace"
+            android:text="Create a new account"
+            android:textColor="@color/white"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_marginBottom="60dp"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:src="@drawable/signup_icon"
+            app:tint="@color/my_secondary"/>
+
+        <EditText
+            android:padding="10dp"
+            android:background="@drawable/edit_text_rounded_corner"
+            android:id="@+id/email_input"
+            android:textColor="@color/black"
+            android:textColorHint="@color/black"
+            android:letterSpacing="0.1"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:gravity="center"
+            android:inputType="text" />
+
+        <EditText
+            android:padding="10dp"
+            android:background="@drawable/edit_text_rounded_corner"
+            android:id="@+id/password_input"
+            android:textColor="@color/black"
+            android:textColorHint="@color/black"
+            android:letterSpacing="0.1"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:gravity="center"
+            android:inputType="textPassword"/>
+
+        <EditText
+            android:padding="10dp"
+            android:background="@drawable/edit_text_rounded_corner"
+            android:id="@+id/username_input"
+            android:textColor="@color/black"
+            android:textColorHint="@color/black"
+            android:letterSpacing="0.1"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            android:gravity="center"
+            android:inputType="text"/>
+
+        <Button
+            android:id="@+id/create_account_btn"
+            android:backgroundTint="@color/my_secondary"
+            android:layout_marginTop="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CREATE ACCOUNT"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"/>
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:elevation="4dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edit Profile"
+        android:textSize="28sp"
+        android:layout_margin="5dp"
+        android:layout_gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:orientation="horizontal"
+        android:weightSum="7">
+
+        <EditText
+            android:layout_weight="1"
+            android:id="@+id/new_username_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter new username"
+            android:layout_gravity="center"
+            android:layout_margin="5dp" />
+
+        <TextView
+            android:id="@+id/user_char_count"
+            android:layout_weight="6"
+            android:layout_gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="15"
+            android:gravity="end"
+            android:textSize="25sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:orientation="horizontal"
+        android:weightSum="7">
+
+        <EditText
+            android:id="@+id/new_bio_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Edit bio"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:inputType="textMultiLine" />
+
+        <TextView
+            android:id="@+id/bio_char_count"
+            android:layout_weight="6"
+            android:layout_gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="150"
+            android:gravity="end"
+            android:textSize="25sp"/>
+
+
+    </LinearLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp">
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:textSize="25sp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="25dp"/>
+
+        <Button
+            android:id="@+id/submit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:textSize="25sp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="25dp"/>
+
+    </RelativeLayout>
+
+</LinearLayout>
