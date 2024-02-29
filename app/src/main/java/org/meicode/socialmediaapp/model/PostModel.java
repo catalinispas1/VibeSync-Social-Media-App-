@@ -83,4 +83,10 @@ public class PostModel {
     public void setUserThatWillSeePostOnFeed(List<String> userThatWillSeePostOnFeed) {
         this.userThatWillSeePostOnFeed = userThatWillSeePostOnFeed;
     }
+    public void addUserThatLiked(String user) {
+        userThatLiked.add(user);
+    }
+    public void removeUserThatLiked(String user) {
+        userThatLiked.remove(user);
+    }
 }

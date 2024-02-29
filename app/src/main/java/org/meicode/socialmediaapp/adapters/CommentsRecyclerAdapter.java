@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,9 +14,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FieldValue;
 
@@ -27,74 +25,121 @@ import org.meicode.socialmediaapp.model.PostComments;
 import org.meicode.socialmediaapp.utils.AndroidUtils;
 import org.meicode.socialmediaapp.utils.FirebaseUtil;
 
-public class CommentsAdapter extends FirestoreRecyclerAdapter<PostComments, CommentsAdapter.PostCommentsViewHolder> {
+import java.util.List;
 
-    Context context;
-    String postId;
+public class CommentsRecyclerAdapter extends RecyclerView.Adapter<CommentsRecyclerAdapter.CommentsViewHolder>{
+
+    List<PostComments> postCommentsList;
+    List<PostComments> newCommentsList;
+    List<String> commentIds;
+    List<String> newCommentsId;
     String userId;
-    public CommentsAdapter(@NonNull FirestoreRecyclerOptions<PostComments> options, Context context, String postId, String userId) {
-        super(options);
-        this.context = context;
+    String postId;
+    Context context;
+
+    public CommentsRecyclerAdapter(List<PostComments> postCommentsList, List<String> commentIds, String postId, String userId, Context context, List<PostComments> newCommentsList, List<String> newCommentsId) {
+        this.postCommentsList = postCommentsList;
         this.postId = postId;
+        this.context = context;
         this.userId = userId;
+        this.commentIds = commentIds;
+        this.newCommentsList = newCommentsList;
+        this.newCommentsId = newCommentsId;
+    }
+
+    public void addComment(PostComments postComments) {
+        postCommentsList.add(postComments);
+    }
+    public void addCommentId(String commentId) {
+        commentIds.add(commentId);
+    }
+    public void addNewComment(PostComments postComments) {
+        newCommentsList.add(postComments);
+    }
+    public void addNewCommentId(String commentId) {
+        newCommentsId.add(commentId);
+    }
+    public void removeComment(int position) {
+        postCommentsList.remove(position);
+        commentIds.remove(position);
+    }
+    public void removeNewComment(int position) {
+        newCommentsList.remove(position);
+        newCommentsId.remove(position);
+    }
+
+    @NonNull
+    @Override
+    public CommentsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.comment_row, parent, false);
+        return new CommentsViewHolder(view);
     }
 
     @Override
-    protected void onBindViewHolder(@NonNull PostCommentsViewHolder holder, int position, @NonNull PostComments model) {
-        String commentId = getSnapshots().getSnapshot(position).getId();
+    public void onBindViewHolder(@NonNull CommentsViewHolder holder, int position) {
+        holder.profilePic.setImageResource(R.drawable.person_icon);
 
-        FirebaseUtil.getProfilePicStorageReference(model.getCommentatorId()).getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+        String commentId;
+        PostComments postComment;
+
+        if (position < newCommentsList.size()) {
+            commentId = newCommentsId.get(newCommentsId.size() - 1 - position);
+            postComment = newCommentsList.get(newCommentsList.size() - 1 - position);
+        } else {
+            commentId = commentIds.get(position - newCommentsList.size());
+            postComment = postCommentsList.get(position - newCommentsId.size());
+        }
+
+        FirebaseUtil.getProfilePicStorageReference(postComment.getCommentatorId()).getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
             @Override
             public void onComplete(@NonNull Task<Uri> task) {
-                if (task.isSuccessful()) {
+                if (task.isSuccessful() && task.getResult() != null) {
                     AndroidUtils.setProfileImage(context, task.getResult(), holder.profilePic);
                 }
             }
         });
-        holder.username.setText(model.getCommentatorUsername());
-        holder.timestamp.setText(AndroidUtils.postedTime(model.getCommentTimestamp()));
-        holder.comment.setText(model.getComment());
+        holder.username.setText(postComment.getCommentatorUsername());
+        holder.timestamp.setText(AndroidUtils.postedTime(postComment.getCommentTimestamp()));
+        holder.comment.setText(postComment.getComment());
 
-        if (model.getCommentatorId().equals(FirebaseUtil.getCurrentUserId())) {
+        if (postComment.getCommentatorId().equals(FirebaseUtil.getCurrentUserId())) {
             holder.deleteComment.setVisibility(View.VISIBLE);
         } else holder.deleteComment.setVisibility(View.INVISIBLE);
 
         holder.deleteComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showAssureDialog(userId, commentId);
+                showAssureDialog(userId, commentId, holder.getAbsoluteAdapterPosition());
             }
         });
 
         holder.profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (model.getCommentatorId().equals(FirebaseUtil.getCurrentUserId())) {
+                if (postComment.getCommentatorId().equals(FirebaseUtil.getCurrentUserId())) {
                     AndroidUtils.showToast(context, "This is your comment");
                     return;
                 }
                 Intent intent = new Intent(context, ProfileViewActivity.class);
-                intent.putExtra("userId", model.getCommentatorId());
+                intent.putExtra("userId", postComment.getCommentatorId());
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
             }
         });
     }
 
-    @NonNull
     @Override
-    public PostCommentsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.comment_row, parent, false);
-        return new PostCommentsViewHolder(view);
+    public int getItemCount() {
+        return postCommentsList.size() + newCommentsList.size();
     }
 
-    class PostCommentsViewHolder extends RecyclerView.ViewHolder {
+    public class CommentsViewHolder extends RecyclerView.ViewHolder {
         ImageView profilePic;
         TextView username;
         TextView timestamp;
         TextView comment;
         TextView deleteComment;
-        public PostCommentsViewHolder(@NonNull View itemView) {
+        public CommentsViewHolder(@NonNull View itemView) {
             super(itemView);
             profilePic = itemView.findViewById(R.id.comment_profile_picture);
             username = itemView.findViewById(R.id.comment_username);
@@ -104,7 +149,7 @@ public class CommentsAdapter extends FirestoreRecyclerAdapter<PostComments, Comm
         }
     }
 
-    private void showAssureDialog(String userId, String commentId) {
+    private void showAssureDialog(String userId, String commentId, int position) {
         View view = LayoutInflater.from(context).inflate(R.layout.assure_dialog, null);
         Button cancelButton = view.findViewById(R.id.cancel_button);
         Button deleteButton = view.findViewById(R.id.delete_button);
@@ -127,11 +172,14 @@ public class CommentsAdapter extends FirestoreRecyclerAdapter<PostComments, Comm
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         FirebaseUtil.getUserPosts(userId).document(postId).update("commentsCount", FieldValue.increment(-1));
-
                         FirebaseUtil.getUserFeed(FirebaseUtil.getCurrentUserId()).document(postId).update("commentsCount", FieldValue.increment(-1));
+                        postCommentsList.remove(position);
+                        commentIds.remove(position);
+                        notifyItemRemoved(position);
                     }
                 });
-                alertDialog.dismiss();
+
+            alertDialog.dismiss();
             }
         });
         alertDialog.show();

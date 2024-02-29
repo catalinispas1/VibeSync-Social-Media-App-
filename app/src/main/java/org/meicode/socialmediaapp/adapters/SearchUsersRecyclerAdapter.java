@@ -12,30 +12,42 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import org.meicode.socialmediaapp.ProfileViewActivity;
 import org.meicode.socialmediaapp.R;
-import org.meicode.socialmediaapp.SearchUserActivity;
 import org.meicode.socialmediaapp.model.UserModel;
 import org.meicode.socialmediaapp.utils.AndroidUtils;
 import org.meicode.socialmediaapp.utils.FirebaseUtil;
 
-public class SearchUserRecyclerAdapter extends FirestoreRecyclerAdapter<UserModel, SearchUserRecyclerAdapter.UserModelViewHolder> {
-    Context context;
+import java.util.List;
 
-    public SearchUserRecyclerAdapter(@NonNull FirestoreRecyclerOptions<UserModel> options, Context context) {
-        super(options);
+public class SearchUsersRecyclerAdapter extends RecyclerView.Adapter<SearchUsersRecyclerAdapter.SearchUserViewHolder>{
+    private Context context;
+    private List<UserModel> userModelList;
+
+    public SearchUsersRecyclerAdapter(Context context, List<UserModel> userModelList) {
         this.context = context;
+        this.userModelList = userModelList;
     }
 
+    public void addUser(UserModel userModel) {
+        userModelList.add(userModel);
+    }
+
+    @NonNull
+    @Override
+    public SearchUserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.search_user_recycler_row, parent, false);
+        return new SearchUserViewHolder(view);
+    }
 
     @Override
-    protected void onBindViewHolder(@NonNull UserModelViewHolder holder, int position, @NonNull UserModel model) {
-        String userId = getSnapshots().getSnapshot(position).getId();
+    public void onBindViewHolder(@NonNull SearchUserViewHolder holder, int position) {
+        holder.profilePic.setImageResource(R.drawable.person_icon);
+        UserModel model = userModelList.get(position);
+        String userId = model.getUserId();
 
         if (!userId.equals(FirebaseUtil.getCurrentUserId())) {
             holder.usernameText.setText(model.getUsername());
@@ -67,22 +79,21 @@ public class SearchUserRecyclerAdapter extends FirestoreRecyclerAdapter<UserMode
         });
     }
 
-    @NonNull
     @Override
-    public UserModelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.search_user_recycler_row, parent, false);
-        return new UserModelViewHolder(view);
+    public int getItemCount() {
+        return userModelList.size();
     }
 
-    class UserModelViewHolder extends RecyclerView.ViewHolder {
+    class SearchUserViewHolder extends RecyclerView.ViewHolder {
 
         TextView usernameText;
         ImageView profilePic;
 
-        public UserModelViewHolder(@NonNull View itemView) {
+        public SearchUserViewHolder(@NonNull View itemView) {
             super(itemView);
             usernameText = itemView.findViewById(R.id.search_username);
             profilePic = itemView.findViewById(R.id.profile_picture_image_view);
         }
     }
+
 }

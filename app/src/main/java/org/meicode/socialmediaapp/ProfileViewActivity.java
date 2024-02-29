@@ -3,11 +3,13 @@ package org.meicode.socialmediaapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -25,12 +27,13 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import org.meicode.socialmediaapp.adapters.PostClickListener;
-import org.meicode.socialmediaapp.adapters.UserPostsAdapter;
+import org.meicode.socialmediaapp.adapters.UserPostsRecyclerAdapter;
 import org.meicode.socialmediaapp.model.PostModel;
 import org.meicode.socialmediaapp.model.UserModel;
 import org.meicode.socialmediaapp.utils.AndroidUtils;
 import org.meicode.socialmediaapp.utils.FirebaseUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProfileViewActivity extends AppCompatActivity implements PostClickListener {
@@ -49,7 +52,12 @@ public class ProfileViewActivity extends AppCompatActivity implements PostClickL
     Button unfollowButton;
     Button messageButton;
     boolean userInitiallyFollowed;
-    UserPostsAdapter adapter;
+    UserPostsRecyclerAdapter adapter;
+    List<String> postIdsList;
+    boolean dataLoading;
+    boolean lastItemReached;
+    DocumentSnapshot lastVisible;
+    private static final int PAGE_SIZE = 12;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +75,10 @@ public class ProfileViewActivity extends AppCompatActivity implements PostClickL
         followButton = findViewById(R.id.follow_button);
         unfollowButton = findViewById(R.id.unfollow_button);
         messageButton = findViewById(R.id.message_button);
+        postIdsList = new ArrayList<>();
+        dataLoading = false;
+        lastItemReached = false;
+        lastVisible = null;
 
         goBackButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,15 +165,30 @@ public class ProfileViewActivity extends AppCompatActivity implements PostClickL
         });
 
         Query query = FirebaseUtil.getUserPosts(userId).orderBy("uploadTime", Query.Direction.DESCENDING);
-        FirestoreRecyclerOptions<PostModel> options = new FirestoreRecyclerOptions.Builder<PostModel>()
-                .setQuery(query, PostModel.class).build();
 
-        adapter = new UserPostsAdapter(options, getApplicationContext(), userId);
+        adapter = new UserPostsRecyclerAdapter(this, userId, postIdsList);
         recyclerView.setLayoutManager(new GridLayoutManager(getApplicationContext(), 3));
-
         recyclerView.setAdapter(adapter);
         adapter.setPostClickListener(this);
-        adapter.startListening();
+        getUserPosts();
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+
+                if (!dataLoading && (firstVisibleItem + visibleItemCount) == totalItemCount && !lastItemReached) {
+                    dataLoading = true;
+                    getUserPosts();
+                    Log.v("TAG", "userFeedCalled because last item scroll detecrted");
+                }
+            }
+        });
 
         followButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -174,6 +201,43 @@ public class ProfileViewActivity extends AppCompatActivity implements PostClickL
             @Override
             public void onClick(View view) {
                 addOrRemoveFollowers(false);
+            }
+        });
+    }
+
+    private void getUserPosts() {
+        Query query;
+        if (lastVisible == null) {
+            query = FirebaseUtil.getUserPosts(userId).orderBy("uploadTime", Query.Direction.DESCENDING).limit(PAGE_SIZE);
+        } else {
+            query = FirebaseUtil.getUserPosts(userId).orderBy("uploadTime", Query.Direction.DESCENDING).limit(PAGE_SIZE).startAfter(lastVisible);
+        }
+
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                    adapter.addPostId(documentSnapshot.getId());
+                }
+                int currentPageSize = queryDocumentSnapshots.size();
+                if (currentPageSize > 0) {
+                    lastVisible = queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.size() - 1);
+                }
+
+                if (currentPageSize < PAGE_SIZE) {
+                    lastItemReached = true;
+                }
+
+                int startPosition = postIdsList.size() - currentPageSize;
+                int endPosition = postIdsList.size() - 1;
+
+                if (startPosition == endPosition) {
+                    adapter.notifyItemInserted(startPosition);
+                } else {
+                    adapter.notifyItemRangeInserted(startPosition, endPosition);
+                }
+
+                dataLoading = false;
             }
         });
     }

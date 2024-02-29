@@ -2,8 +2,6 @@ package org.meicode.socialmediaapp.utils;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,6 +10,7 @@ import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.meicode.socialmediaapp.ChatActivity;
 import org.meicode.socialmediaapp.R;
 
 public class FcmNotificationService extends FirebaseMessagingService {
@@ -20,7 +19,6 @@ public class FcmNotificationService extends FirebaseMessagingService {
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
-        Log.v("TAG", "THIS IS created NOTIFICATION: ");
     }
 
     @Override
@@ -32,10 +30,8 @@ public class FcmNotificationService extends FirebaseMessagingService {
             String title = message.getNotification().getTitle();
             String body =  message.getNotification().getBody();
 
-            Bitmap largeIconBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.vibesync_icon);
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
-                    .setLargeIcon(largeIconBitmap)
                     .setSmallIcon(R.drawable.notification_icon)
                     .setContentTitle(title)
                     .setContentText(body);

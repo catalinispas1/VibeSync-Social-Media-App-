@@ -1,13 +1,13 @@
 package org.meicode.socialmediaapp;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -15,18 +15,24 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONObject;
-import org.meicode.socialmediaapp.adapters.ChatMessagesAdapter;
-import org.meicode.socialmediaapp.adapters.SearchUserRecyclerAdapter;
+import org.meicode.socialmediaapp.adapters.ChatMessageRecyclerAdapter;
+import org.meicode.socialmediaapp.fragments.HomeFragment;
 import org.meicode.socialmediaapp.model.ChatMessageModel;
 import org.meicode.socialmediaapp.model.ChatRoomModel;
 import org.meicode.socialmediaapp.model.UserModel;
@@ -35,7 +41,9 @@ import org.meicode.socialmediaapp.utils.FirebaseUtil;
 import org.meicode.socialmediaapp.utils.PrepareUserFeed;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -50,14 +58,29 @@ public class ChatActivity extends AppCompatActivity {
     ChatRoomModel chatRoomModel;
     String userId;
     String otherUserFcmToken;
-    ChatMessagesAdapter adapter;
+    ChatMessageRecyclerAdapter adapter;
     RecyclerView recyclerView;
     EditText messageInputEdittext;
     ImageButton sendMessageButton;
     ImageButton backButton;
     TextView otherUsernameTextview;
     ImageView otherUserProfilePic;
+    DocumentSnapshot lastVisible;
+    private static final int PAGE_SIZE = 20;
+    List<ChatMessageModel> messageList;
+    List<ChatMessageModel> newMessageList;
+    public static boolean lastItemReached;
+    boolean dataLoading;
+    boolean lastMessageFetched;
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if (getIntent().getExtras() != null && getIntent().getExtras().get("fromNotification") != null){
+            SplashActivity.firstTimeLaunch = true;
+            HomeFragment.fromNotification = true;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,22 +93,24 @@ public class ChatActivity extends AppCompatActivity {
         backButton = findViewById(R.id.go_back_button);
         recyclerView = findViewById(R.id.chat_recyclerview);
         otherUserProfilePic = findViewById(R.id.chat_profile_pic);
-        ChatActivity chatActivity = this;
+        lastItemReached = false;
+        lastMessageFetched = false;
+        dataLoading = false;
 
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (getIntent().getExtras().get("getFeed") != null){
-                    SplashActivity.firstTimeLaunch = true;
-                    new PrepareUserFeed(chatActivity).prepareUserFeed();
-                } else {
-                    onBackPressed();
-                }
+                onBackPressed();
             }
         });
 
         userId = getIntent().getExtras().getString("userId");
-        otherUserFcmToken = getIntent().getExtras().getString("fcmToken");
+        FirebaseUtil.getUsersCollectionReference().document(userId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                otherUserFcmToken = documentSnapshot.getString("fcmToken");
+            }
+        });
 
         FirebaseUtil.getProfilePicStorageReference(userId).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
@@ -105,13 +130,6 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-//        FirebaseUtil.getProfilePicStorageReference(userId).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-//            @Override
-//            public void onSuccess(Uri uri) {
-//                AndroidUtils.setProfileImage(getApplicationContext(), uri, otherUserProfilePic);
-//            }
-//        });
-
         sendMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -123,26 +141,112 @@ public class ChatActivity extends AppCompatActivity {
 
         getChatRoomModel();
         setupChatRecyclerView();
+        Log.v("TAG", "GET MESSAGES CALLED");
     }
 
     private void setupChatRecyclerView() {
-        Query query = FirebaseUtil.getChatRoomMessageReference(chatRoomId).orderBy("timestamp", Query.Direction.DESCENDING);
+        messageList = new ArrayList<>();
+        newMessageList = new ArrayList<>();
 
-        FirestoreRecyclerOptions<ChatMessageModel> options = new FirestoreRecyclerOptions.Builder<ChatMessageModel>()
-                .setQuery(query, ChatMessageModel.class).build();
-
-        adapter = new ChatMessagesAdapter(options, this);
+        adapter = new ChatMessageRecyclerAdapter(this, messageList, newMessageList);
         LinearLayoutManager manager = new LinearLayoutManager(this);
         manager.setReverseLayout(true);
         recyclerView.setLayoutManager(manager);
         recyclerView.setAdapter(adapter);
-        adapter.startListening();
 
-        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onItemRangeInserted(int positionStart, int itemCount) {
-                super.onItemRangeInserted(positionStart, itemCount);
-                recyclerView.smoothScrollToPosition(0);
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+
+                if (!dataLoading && (firstVisibleItem + visibleItemCount) == totalItemCount && !lastItemReached) {
+                    dataLoading = true;
+                    getMessages();
+                }
+            }
+        });
+    }
+
+    private void getMessages() {
+        Query query;
+        if (lastVisible == null) {
+            query = FirebaseUtil.getChatRoomMessageReference(chatRoomId).orderBy("timestamp", Query.Direction.DESCENDING).limit(PAGE_SIZE);
+        } else {
+            query = FirebaseUtil.getChatRoomMessageReference(chatRoomId).orderBy("timestamp", Query.Direction.DESCENDING).limit(PAGE_SIZE).startAfter(lastVisible);
+        }
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (!lastMessageFetched) {
+                    DocumentSnapshot lastMessage = null;
+                    try {
+                        lastMessage = queryDocumentSnapshots.getDocuments().get(0);
+                    } catch (IndexOutOfBoundsException e) {}
+
+                    fetchNewMessages(lastMessage);
+                    lastMessageFetched = true;
+                }
+                for (QueryDocumentSnapshot documentSnapshot: queryDocumentSnapshots) {
+                    ChatMessageModel chatMessageModel = documentSnapshot.toObject(ChatMessageModel.class);
+                    adapter.addMessage(chatMessageModel);
+                    Log.v("TAG", chatMessageModel.getMessage());
+                }
+
+                int currentPageSize = queryDocumentSnapshots.size();
+
+
+                if (currentPageSize == 0) {
+                    adapter.notifyItemRemoved(adapter.getItemCount() - 1);
+                    lastItemReached = true;
+                    return;
+                }
+
+                Log.v("TAG", "PAGE SIZE " + currentPageSize);
+
+                if (currentPageSize > 0) {
+                    ChatActivity.this.lastVisible = queryDocumentSnapshots.getDocuments().get(currentPageSize - 1);
+                }
+
+                int startPosition = adapter.getItemCount() - currentPageSize;
+                int endPosition = adapter.getItemCount() - 1;
+
+                dataLoading = false;
+
+                adapter.notifyItemRangeInserted(startPosition, endPosition);
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                dataLoading = false;
+                AndroidUtils.showToast(ChatActivity.this, "Something went wrong");
+            }
+        });
+    }
+
+    private void fetchNewMessages(DocumentSnapshot lastMessage) {
+        Query query;
+        if (lastMessage != null) {
+            query = FirebaseUtil.getChatRoomMessageReference(chatRoomId).orderBy("timestamp", Query.Direction.ASCENDING)
+                    .startAfter(lastMessage);
+        } else {
+            query = FirebaseUtil.getChatRoomMessageReference(chatRoomId).orderBy("timestamp", Query.Direction.ASCENDING);
+        }
+        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                for (DocumentChange documentChange : value.getDocumentChanges()) {
+                    ChatMessageModel chatMessageModel = documentChange.getDocument().toObject(ChatMessageModel.class);
+                    adapter.addNewMessage(chatMessageModel);
+                    adapter.notifyItemInserted(0);
+                    recyclerView.smoothScrollToPosition(0);
+                    Log.v("TAG", "NEW MESSAGE");
+                }
             }
         });
     }
@@ -225,11 +329,5 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {}
         });
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (adapter!= null) adapter.stopListening();
     }
 }

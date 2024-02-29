@@ -41,15 +41,21 @@ public class AndroidUtils {
     }
 
     public static void setProfileImage(Context context, Uri imageUri, ImageButton imageButton) {
-        Glide.with(context).load(imageUri).into(imageButton);
+        try {
+            Glide.with(context).load(imageUri).into(imageButton);
+        } catch (IllegalArgumentException e){}
     }
 
     public static void setProfileImage(Context context, Uri imageUri, ImageView imageview) {
-        Glide.with(context).load(imageUri).apply(RequestOptions.circleCropTransform()).into(imageview);
+        try {
+            Glide.with(context).load(imageUri).apply(RequestOptions.circleCropTransform()).into(imageview);
+        } catch (IllegalArgumentException e) {}
     }
 
     public static void setPostImage(Context context, Uri imageUri, ImageView imageview) {
-        Glide.with(context).load(imageUri).into(imageview);
+        try {
+            Glide.with(context).load(imageUri).into(imageview);
+        } catch (IllegalArgumentException e){}
     }
 
 

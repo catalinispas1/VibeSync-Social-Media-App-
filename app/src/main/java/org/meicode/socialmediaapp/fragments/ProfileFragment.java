@@ -2,7 +2,6 @@ package org.meicode.socialmediaapp.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,11 +14,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,28 +31,28 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.UploadTask;
 
-import org.checkerframework.checker.units.qual.A;
 import org.meicode.socialmediaapp.FollowedUsersActivity;
 import org.meicode.socialmediaapp.PostViewActivity;
-import org.meicode.socialmediaapp.ProfileViewActivity;
 import org.meicode.socialmediaapp.R;
 import org.meicode.socialmediaapp.adapters.PostClickListener;
-import org.meicode.socialmediaapp.adapters.UserPostsAdapter;
-import org.meicode.socialmediaapp.model.PostModel;
+import org.meicode.socialmediaapp.adapters.UserPostsRecyclerAdapter;
 import org.meicode.socialmediaapp.model.UserModel;
 import org.meicode.socialmediaapp.utils.AndroidUtils;
 import org.meicode.socialmediaapp.utils.FirebaseUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -69,12 +71,18 @@ public class ProfileFragment extends Fragment implements PostClickListener {
     Uri profilePicUri;
     String username;
     String bioText;
-    UserPostsAdapter adapter;
+    UserPostsRecyclerAdapter adapter;
     RecyclerView recyclerView;
-    int maxBioLength = 150;
+    SwipeRefreshLayout swipeRefreshLayout;
+    final int maxBioLength = 150;
     InputFilter lengthBioFilter = new InputFilter.LengthFilter(maxBioLength);
-    int maxUsernameLength = 15;
+    final int maxUsernameLength = 15;
     InputFilter lengthUsernameFilter = new InputFilter.LengthFilter(maxUsernameLength);
+    List<String> postIdList;
+    DocumentSnapshot lastVisible;
+    boolean dataLoading;
+    boolean lastItemReached;
+    static final int PAGE_SIZE = 12;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -113,6 +121,29 @@ public class ProfileFragment extends Fragment implements PostClickListener {
         postsCountText = view.findViewById(R.id.posts_count);
         whoFollowsMeTextview = view.findViewById(R.id.who_follows_me_count);
         whoIfollowTextview = view.findViewById(R.id.who_i_follow);
+        swipeRefreshLayout = view.findViewById(R.id.user_posts_refresh_layout);
+        postIdList = new ArrayList<>();
+
+        lastVisible = null;
+        lastItemReached = false;
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                lastItemReached = false;
+                lastVisible = null;
+                adapter.removeAllPosts();
+                adapter.notifyDataSetChanged();
+                getUserPosts();
+                FirebaseUtil.getUserPosts(FirebaseUtil.getCurrentUserId()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        postsCountText.setText(task.getResult().size() + "\nposts");
+                    }
+                });
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
 
         whoFollowsMeTextview.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -176,30 +207,68 @@ public class ProfileFragment extends Fragment implements PostClickListener {
             }
         });
 
-        FirebaseUtil.getProfilePicStorageReference(FirebaseUtil.getCurrentUserId()).getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+        adapter = new UserPostsRecyclerAdapter(getContext(), FirebaseUtil.getCurrentUserId(), postIdList);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        recyclerView.setAdapter(adapter);
+        adapter.setPostClickListener(this);
+        getUserPosts();
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onComplete(@NonNull Task<Uri> task) {
-                if (task.isSuccessful()) {
-                    if (getContext() != null) {
-                        Glide.with(getContext()).load(task.getResult()).into(profilePic);
-                        AndroidUtils.setProfileImage(getContext(), task.getResult(), profilePic);
-                    }
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+
+                if (!dataLoading && (firstVisibleItem + visibleItemCount) == totalItemCount && !lastItemReached) {
+                    dataLoading = true;
+                    getUserPosts();
+                    Log.v("TAG", "userFeedCalled because last item scroll detecrted");
                 }
             }
         });
 
-        Query query = FirebaseUtil.getUserPosts(FirebaseUtil.getCurrentUserId()).orderBy("uploadTime", Query.Direction.DESCENDING);
-        FirestoreRecyclerOptions<PostModel> options = new FirestoreRecyclerOptions.Builder<PostModel>()
-                .setQuery(query, PostModel.class).build();
-
-        adapter = new UserPostsAdapter(options, getContext(), FirebaseUtil.getCurrentUserId());
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-
-        recyclerView.setAdapter(adapter);
-        adapter.setPostClickListener(this);
-        adapter.startListening();
-
         return view;
+    }
+
+    private void getUserPosts() {
+        Query query;
+        if (lastVisible == null) {
+            query = FirebaseUtil.getUserPosts(FirebaseUtil.getCurrentUserId()).orderBy("uploadTime", Query.Direction.DESCENDING).limit(PAGE_SIZE);
+        } else {
+            query = FirebaseUtil.getUserPosts(FirebaseUtil.getCurrentUserId()).orderBy("uploadTime", Query.Direction.DESCENDING).limit(PAGE_SIZE).startAfter(lastVisible);
+        }
+
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                    adapter.addPostId(documentSnapshot.getId());
+                }
+                int currentPageSize = queryDocumentSnapshots.size();
+                if (currentPageSize > 0) {
+                    lastVisible = queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.size() - 1);
+                }
+
+                if (currentPageSize < PAGE_SIZE) {
+                    lastItemReached = true;
+                }
+
+                int startPosition = postIdList.size() - currentPageSize;
+                int endPosition = postIdList.size() - 1;
+
+                if (startPosition == endPosition) {
+                    adapter.notifyItemInserted(startPosition);
+                } else {
+                    adapter.notifyItemRangeInserted(startPosition, endPosition);
+                }
+
+                dataLoading = false;
+            }
+        });
     }
 
     private void showEditProfileDialog() {
@@ -345,7 +414,6 @@ public class ProfileFragment extends Fragment implements PostClickListener {
             }
         });
     }
-
 
     @Override
     public void onPostClicked(View view, int position, String userId) {

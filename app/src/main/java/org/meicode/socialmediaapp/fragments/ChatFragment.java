@@ -15,9 +15,7 @@ import com.google.firebase.firestore.Query;
 
 import org.meicode.socialmediaapp.R;
 import org.meicode.socialmediaapp.adapters.RecentChatAdapter;
-import org.meicode.socialmediaapp.adapters.SearchUserRecyclerAdapter;
 import org.meicode.socialmediaapp.model.ChatRoomModel;
-import org.meicode.socialmediaapp.model.UserModel;
 import org.meicode.socialmediaapp.utils.FirebaseUtil;
 
 public class ChatFragment extends Fragment {
@@ -42,7 +40,7 @@ public class ChatFragment extends Fragment {
 
     private void setupRecyclerView() {
         Query query = FirebaseUtil.allChatroomCollectionReference().whereArrayContains("userIds", FirebaseUtil.getCurrentUserId())
-                .orderBy("lastMessageTimestamp", Query.Direction.DESCENDING);
+                .orderBy("lastMessageTimestamp", Query.Direction.DESCENDING).whereNotEqualTo("lastMessage", null);
 
         FirestoreRecyclerOptions<ChatRoomModel> options = new FirestoreRecyclerOptions.Builder<ChatRoomModel>()
                 .setQuery(query, ChatRoomModel.class).build();

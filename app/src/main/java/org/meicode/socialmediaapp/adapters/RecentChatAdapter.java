@@ -39,10 +39,8 @@ public class RecentChatAdapter extends FirestoreRecyclerAdapter<ChatRoomModel, R
                 holder.profilePic.setImageResource(R.drawable.person_icon);
                 boolean lastMessageSentByMe = model.getLastMessageSenderId().equals(FirebaseUtil.getCurrentUserId());
                 String otherUserId = documentSnapshot.getId();
-                String otherUserFcmToken = (String) documentSnapshot.get("fcmToken");
 
-
-                String otherUsername = documentSnapshot.getString("username").toString();
+                String otherUsername = documentSnapshot.getString("username");
 
                 holder.usernameTextview.setText(otherUsername);
 
@@ -57,10 +55,10 @@ public class RecentChatAdapter extends FirestoreRecyclerAdapter<ChatRoomModel, R
                         Intent intent = new Intent(context, ChatActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         intent.putExtra("userId", otherUserId);
-                        intent.putExtra("fcmToken", otherUserFcmToken);
                         context.startActivity(intent);
                     }
                 });
+
                 FirebaseUtil.getProfilePicStorageReference(otherUserId).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
