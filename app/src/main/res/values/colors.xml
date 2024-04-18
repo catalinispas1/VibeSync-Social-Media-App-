@@ -11,4 +11,6 @@
 
     <color name="chat_color_sender">#1e88e5</color>
     <color name="chat_color_receiver">#7cb342</color>
+
+    <color name="like_color">#1877F2</color>
 </resources>

@@ -49,6 +49,11 @@
         tools:text="catalinn_01" />
 
     <Button
+        android:textAllCaps="false"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textColor="@color/white"
+        android:background="@drawable/default_button"
         android:id="@+id/follow_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -60,6 +65,11 @@
         android:text="Follow" />
 
     <Button
+        android:textAllCaps="false"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:textColor="@color/white"
+        android:background="@drawable/default_button"
         android:id="@+id/unfollow_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -71,6 +81,11 @@
 
 
     <Button
+        android:textAllCaps="false"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:textColor="@color/white"
+        android:background="@drawable/default_button"
         android:id="@+id/message_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

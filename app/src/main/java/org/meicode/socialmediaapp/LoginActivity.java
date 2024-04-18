@@ -50,8 +50,13 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String email = emailInput.getText().toString();
-                String password = passwordInput.getText().toString();
+                String email = (emailInput.getText().toString() != null) ? emailInput.getText().toString() : "";
+                String password = (passwordInput.getText().toString() != null) ? passwordInput.getText().toString() : "";
+
+                if (email.isEmpty() || password.isEmpty()) {
+                    AndroidUtils.showToast(LoginActivity.this, "Fields cannot be null");
+                    return;
+                }
 
                 FirebaseUtil.getFirebaseAuth().signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override

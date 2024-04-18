@@ -129,8 +129,10 @@ public class HomeFragment extends Fragment {
             FirebaseUtil.getUserPosts(userId).document(postId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                 @Override
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
-                    String commentCount = documentSnapshot.get("commentsCount").toString();
-                    adapter.getiewHolderAtPostion(commentAdapterPostionAdded).refreshCommentCount(commentCount);
+                    try {
+                        String commentCount = documentSnapshot.get("commentsCount").toString();
+                        adapter.getiewHolderAtPostion(commentAdapterPostionAdded).refreshCommentCount(commentCount);
+                    }catch (Exception e){}
                 }
             });
         }
@@ -154,8 +156,8 @@ public class HomeFragment extends Fragment {
                 for (QueryDocumentSnapshot documentSnapshot: queryDocumentSnapshots) {
                     PostModel postModel = documentSnapshot.toObject(PostModel.class);
                     adapter.addPost(postModel);
+                    Log.v("TAG", postModel.getUsername() + " " + postModel.getCommentsCount());
                     adapter.addPostId(documentSnapshot.getId());
-                    Log.v("TAG", postModel.getUsername());
                 }
                 int currentPageSize = queryDocumentSnapshots.size();
 

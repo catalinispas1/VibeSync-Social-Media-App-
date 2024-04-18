@@ -39,15 +39,6 @@ public class SplashActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         firstTimeLaunch = true;
-
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
-            @Override
-            public void onComplete(@NonNull Task<String> task) {
-                if (task.isSuccessful()) {
-                    FirebaseUtil.getCurrentUserDetails().update("fcmToken", task.getResult());
-                }
-            }
-        });
     }
 
     @Override

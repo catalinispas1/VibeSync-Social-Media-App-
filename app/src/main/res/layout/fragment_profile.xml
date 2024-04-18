@@ -8,13 +8,17 @@
     tools:context=".fragments.ProfileFragment">
 
     <Button
+        android:textColor="@color/white"
+        android:background="@drawable/default_button"
+        android:paddingRight="20dp"
+        android:paddingLeft="20dp"
         android:id="@+id/edit_profile_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Edit Profile"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="40dp"
-        android:layout_marginEnd="80dp"/>
+        android:layout_marginEnd="40dp"/>
 
     <TextView
         android:id="@+id/username_profile"

@@ -19,6 +19,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.meicode.socialmediaapp.model.UserModel;
 import org.meicode.socialmediaapp.utils.AndroidUtils;
@@ -95,6 +96,14 @@ public class CreateAccountActivity extends AppCompatActivity {
                     Intent intent = new Intent(CreateAccountActivity.this, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
+                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                            if (task.isSuccessful() && task.getResult() != null) {
+                                FirebaseUtil.getCurrentUserDetails().update("fcmToken", task.getResult());
+                            }
+                        }
+                    });
                     startActivity(intent);
                     finish();
                 } else {

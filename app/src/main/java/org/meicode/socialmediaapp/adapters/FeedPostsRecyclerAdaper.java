@@ -4,9 +4,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -38,12 +41,14 @@ public class FeedPostsRecyclerAdaper extends RecyclerView.Adapter<RecyclerView.V
     private List<String> postIds;
     private Context context;
     private RecyclerView recyclerView;
+    Animation scaleUp;
 
     public FeedPostsRecyclerAdaper(List<PostModel> postModelList, List<String> postIds, Context context, RecyclerView recyclerView) {
         this.postModelList = postModelList;
         this.context = context;
         this.postIds = postIds;
         this.recyclerView = recyclerView;
+        scaleUp = AnimationUtils.loadAnimation(context, R.anim.scale_up);
     }
 
     public void addPost(PostModel postModel) {
@@ -76,7 +81,6 @@ public class FeedPostsRecyclerAdaper extends RecyclerView.Adapter<RecyclerView.V
         LayoutInflater inflater = LayoutInflater.from(context);
         view = inflater.inflate(R.layout.post_user_recycler_row, parent, false);
         return new FeedPostsRecyclerAdaper.PostModelViewHolder(view);
-
     }
 
     @Override
@@ -92,6 +96,8 @@ public class FeedPostsRecyclerAdaper extends RecyclerView.Adapter<RecyclerView.V
 
                 postModelViewHolder.likeButton.setVisibility(View.INVISIBLE);
                 postModelViewHolder.unlikeButton.setVisibility(View.VISIBLE);
+                postModelViewHolder.unlikeButton.startAnimation(scaleUp);
+
                 FirebaseUtil.getUserPosts(currentPostModel.getUserId()).document(postId)
                         .update("userThatLiked", FieldValue.arrayUnion(FirebaseUtil.getCurrentUserId()));
 
@@ -110,6 +116,7 @@ public class FeedPostsRecyclerAdaper extends RecyclerView.Adapter<RecyclerView.V
 
                 postModelViewHolder.likeButton.setVisibility(View.VISIBLE);
                 postModelViewHolder.unlikeButton.setVisibility(View.INVISIBLE);
+                postModelViewHolder.likeButton.startAnimation(scaleUp);
                 FirebaseUtil.getUserPosts(currentPostModel.getUserId()).document(postId)
                         .update("userThatLiked", FieldValue.arrayRemove(FirebaseUtil.getCurrentUserId()));
 

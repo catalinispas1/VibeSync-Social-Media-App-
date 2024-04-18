@@ -62,7 +62,7 @@ public class CommentsActivity extends AppCompatActivity {
         sendButton = findViewById(R.id.send_comment_button);
 
         commentInput.setText("");
-        commentInput.requestFocus();
+//        commentInput.requestFocus();
         goBackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -166,7 +166,11 @@ public class CommentsActivity extends AppCompatActivity {
 
                 dataLoading = false;
 
-                adapter.notifyItemRangeInserted(startPosition, endPosition);
+                if (startPosition == endPosition) {
+                    adapter.notifyItemInserted(startPosition);
+                } else {
+                    adapter.notifyItemRangeInserted(startPosition, endPosition);
+                }
 
                 if (currentPageSize < PAGE_SIZE) {
                     lastItemReached = true;

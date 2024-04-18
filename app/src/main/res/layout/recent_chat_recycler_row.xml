@@ -1,61 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_margin="10dp"
-    android:elevation="5dp">
-
-    <ImageView
-        android:id="@+id/recent_chat_profile_picture_image_view"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:layout_margin="10dp"
-        android:layout_gravity="center"
-
-        android:background="@drawable/circular_bg"
-        android:backgroundTint="@color/my_primary"
-        android:src="@drawable/person_icon"
-        android:scaleType="centerCrop" />
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="20dp"
+    android:layout_marginTop="10dp"
+    app:cardElevation="5dp"
+    android:backgroundTint="?android:windowBackground">
 
     <LinearLayout
-        android:layout_marginStart="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center">
+        android:layout_margin="3dp">
+        <ImageView
+            android:id="@+id/recent_chat_profile_picture_image_view"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="3dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginBottom="3dp"
 
-        <RelativeLayout
+            android:background="@drawable/circular_bg"
+            android:backgroundTint="@color/my_primary"
+            android:src="@drawable/person_icon"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:layout_marginStart="5dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/recent_chat_username"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:text="Username"
-                android:textSize="25sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/last_message_timestamp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerInParent="true"
-                android:paddingRight="10dp"
-                tools:text="10 minutes ago" />
-
-        </RelativeLayout>
-
-
-        <TextView
-            android:id="@+id/last_message_textview"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="Last message text" />
+            android:orientation="vertical"
+            android:layout_gravity="center">
 
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/recent_chat_username"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="Username"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/last_message_timestamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerInParent="true"
+                    android:paddingRight="10dp"
+                    tools:text="10 minutes ago" />
+
+            </RelativeLayout>
+
+
+            <TextView
+                android:id="@+id/last_message_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="Last message text" />
+
+
+        </LinearLayout>
 
     </LinearLayout>
 
-</LinearLayout>
+
+</androidx.cardview.widget.CardView>

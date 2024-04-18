@@ -27,13 +27,16 @@
         android:layout_marginStart="9dp"
         android:gravity="top"
         android:background="@android:color/transparent"
-
         android:hint="Pick a photo by clicling above and enter the post description"
         app:layout_constraintBottom_toTopOf="@+id/upload_post_btn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/post_imageview" />
 
     <Button
+        android:textColor="@color/white"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:background="@drawable/default_button"
         android:layout_margin="20dp"
         android:id="@+id/upload_post_btn"
         android:layout_width="wrap_content"
@@ -44,6 +47,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <ProgressBar
+        android:backgroundTint="@color/my_secondary"
         android:id="@+id/add_post_progressbar"
         android:visibility="invisible"
         android:layout_width="wrap_content"
