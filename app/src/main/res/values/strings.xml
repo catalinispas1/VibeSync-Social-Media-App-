@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">Vibe Sync</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="notification_channel_id">channel1</string>
-    <string name="api_key">AAAA6SKAEys:APA91bEICTLx8b53XNFx9dnrqhsgwzD-ckIdp-BJJTRDtY4ZWQjCPDbOM-Vsl3iEHz90sqgeTA97SFAfax-ip8fpyAQRefJkLsa7SAs-3QZKC-yY9K28JwJ7xOvaYjoqByvwSgfegt-1</string>
-</resources>
