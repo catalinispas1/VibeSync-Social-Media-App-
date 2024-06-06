@@ -117,13 +117,11 @@ public class HomeFragment extends Fragment {
             fromNotification = false;
             return;
         }
-        
         if (SplashActivity.firstTimeLaunch) {
             instantiateAdapter();
             getUserFeed();
             SplashActivity.firstTimeLaunch = false;
         }
-
         if (fromCommentActivity) {
             fromCommentActivity = false;
             FirebaseUtil.getUserPosts(userId).document(postId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {

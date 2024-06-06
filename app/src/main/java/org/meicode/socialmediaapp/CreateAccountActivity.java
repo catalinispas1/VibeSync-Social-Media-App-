@@ -91,19 +91,9 @@ public class CreateAccountActivity extends AppCompatActivity {
                     userModel.setUsername(username);
                     userModel.setCreatedTimestamp(Timestamp.now());
                     userModel.setUserId(FirebaseUtil.getCurrentUserId());
-
                     FirebaseUtil.getCurrentUserDetails().set(userModel);
                     Intent intent = new Intent(CreateAccountActivity.this, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
-                        @Override
-                        public void onComplete(@NonNull Task<String> task) {
-                            if (task.isSuccessful() && task.getResult() != null) {
-                                FirebaseUtil.getCurrentUserDetails().update("fcmToken", task.getResult());
-                            }
-                        }
-                    });
                     startActivity(intent);
                     finish();
                 } else {

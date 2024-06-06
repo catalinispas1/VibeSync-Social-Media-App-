@@ -164,4 +164,90 @@ public class PrepareUserFeed {
             }
         });
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public void prepareUserFeed1() {
+        FirebaseUtil.getCurrentUserDetails().get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()) {
+                    List<String> whoIfollowList = (List<String>) documentSnapshot.get("whoIfollow");
+
+                    if (whoIfollowList.isEmpty()) {
+                        startMainActivity();
+                        return;
+                    }
+                    for (int i = whoIfollowList.size() - 1; i >= 0 && !foundUserPosts; i--) {
+                        final int index = i;
+                        FirebaseUtil.getUserPosts(whoIfollowList.get(i)).whereArrayContains("userThatWillSeePostOnFeed", FirebaseUtil.getCurrentUserId())
+                                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                        if (!queryDocumentSnapshots.isEmpty()) {
+                                            lastUserFollowed = whoIfollowList.get(index);
+                                            foundUserPosts = true;
+
+                                            for (String followedUserId : whoIfollowList) {
+
+                                                FirebaseUtil.getUserPosts(followedUserId)
+                                                        .whereArrayContains("userThatWillSeePostOnFeed", FirebaseUtil.getCurrentUserId())
+                                                        .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                                            @Override
+                                                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                                                final int postsSize = queryDocumentSnapshots.size();
+                                                                for (QueryDocumentSnapshot postDocument: queryDocumentSnapshots) {
+                                                                    FirebaseUtil.getUserPosts(followedUserId).document(postDocument.getId())
+                                                                            .update("userThatWillSeePostOnFeed", FieldValue.arrayRemove(FirebaseUtil.getCurrentUserId()));
+                                                                    PostModel postModel = postDocument.toObject(PostModel.class);
+
+                                                                    FirebaseUtil.setUserFeed(FirebaseUtil.getCurrentUserId(), postDocument.getId()).set(postModel).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                        @Override
+                                                                        public void onSuccess(Void unused) {
+                                                                            if (followedUserId.equals(lastUserFollowed)) {
+                                                                                postQueriesCount++;
+                                                                                if (postQueriesCount == postsSize) {
+                                                                                    startMainActivity();
+                                                                                }
+                                                                            }
+                                                                        }});}}});
+                                            }
+                                        } else {
+                                            countUsersWithoutPosts++;
+                                            if (countUsersWithoutPosts == whoIfollowList.size()) {
+                                                startMainActivity();
+                                            }
+                                        }
+                                    }});}}}});}
+
 }

@@ -135,7 +135,18 @@ public class ChatActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String message = messageInputEdittext.getText().toString().trim();
                 if (message.isEmpty()) return;
-                sendMessageToUser(message);
+                if (chatRoomModel == null) {
+                    // first time chatting
+                    chatRoomModel = new ChatRoomModel(chatRoomId, Arrays.asList(FirebaseUtil.getCurrentUserId(), userId), Timestamp.now(), "");
+                    FirebaseUtil.getChatRoomReference(chatRoomId).set(chatRoomModel).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            sendMessageToUser(message);
+                        }
+                    });
+                } else {
+                    sendMessageToUser(message);
+                }
             }
         });
 
@@ -218,7 +229,6 @@ public class ChatActivity extends AppCompatActivity {
                 dataLoading = false;
 
                 adapter.notifyItemRangeInserted(startPosition, endPosition);
-
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -249,6 +259,7 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     private void sendMessageToUser(String message) {
@@ -276,11 +287,6 @@ public class ChatActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     chatRoomModel = task.getResult().toObject(ChatRoomModel.class);
-                    if (chatRoomModel == null) {
-                        // first time chatting
-                        chatRoomModel = new ChatRoomModel(chatRoomId, Arrays.asList(FirebaseUtil.getCurrentUserId(), userId), Timestamp.now(), "");
-                        FirebaseUtil.getChatRoomReference(chatRoomId).set(chatRoomModel);
-                    }
                 }
             }
         });
@@ -321,7 +327,7 @@ public class ChatActivity extends AppCompatActivity {
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
-                .header("Authorization", "Bearer AAAA6SKAEys:APA91bEICTLx8b53XNFx9dnrqhsgwzD-ckIdp-BJJTRDtY4ZWQjCPDbOM-Vsl3iEHz90sqgeTA97SFAfax-ip8fpyAQRefJkLsa7SAs-3QZKC-yY9K28JwJ7xOvaYjoqByvwSgfegt-1")
+                .header("Authorization", "Bearer " + getString(R.string.api_key))
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override

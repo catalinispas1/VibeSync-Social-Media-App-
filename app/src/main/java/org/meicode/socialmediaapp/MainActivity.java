@@ -31,6 +31,7 @@ import org.meicode.socialmediaapp.fragments.ChatFragment;
 import org.meicode.socialmediaapp.fragments.HomeFragment;
 import org.meicode.socialmediaapp.fragments.NewPostFragment;
 import org.meicode.socialmediaapp.fragments.ProfileFragment;
+import org.meicode.socialmediaapp.utils.FirebaseUtil;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -65,6 +66,14 @@ public class MainActivity extends AppCompatActivity {
         frameLayout.removeAllViews();
         fragmentTitle = findViewById(R.id.fragment_title);
 
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+            @Override
+            public void onComplete(@NonNull Task<String> task) {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    FirebaseUtil.getCurrentUserDetails().update("fcmToken", task.getResult());
+                }
+            }
+        });
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -76,7 +76,6 @@ public class UserPostsRecyclerAdapter extends RecyclerView.Adapter<UserPostsRecy
         public UserPostsViewHolder(@NonNull View itemView) {
             super(itemView);
             userPostImageview = itemView.findViewById(R.id.post_grid_item_imageview);
-
             itemView.setOnClickListener(this);
         }
 

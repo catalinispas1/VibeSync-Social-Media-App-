@@ -1,11 +1,19 @@
 package org.meicode.socialmediaapp.utils;
 
+import android.view.View;
+
+import androidx.annotation.NonNull;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
+import org.meicode.socialmediaapp.ChatActivity;
+import org.meicode.socialmediaapp.adapters.ChatMessageRecyclerAdapter;
+import org.meicode.socialmediaapp.model.ChatMessageModel;
 
 import java.util.List;
 

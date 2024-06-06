@@ -116,15 +116,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/edit_profile_pic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/edit_icon"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/profile_picture" />
 
         <TextView
             android:id="@+id/post_count"
@@ -137,7 +128,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/who_follows_me_count"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/edit_profile_pic"
+            app:layout_constraintStart_toEndOf="@+id/profile_picture"
             app:layout_constraintStart_toStartOf="@+id/guideline"
             tools:text="5 \n posts" />
 
