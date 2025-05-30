@@ -320,20 +320,20 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void callApi(JSONObject jsonObject) {
-        MediaType JSON = MediaType.get("application/json");
-        OkHttpClient client = new OkHttpClient();
-        String url = "https://fcm.googleapis.com/fcm/send";
-        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .header("Authorization", "Bearer " + getString(R.string.api_key))
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {}
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {}
-        });
+//        MediaType JSON = MediaType.get("application/json");
+//        OkHttpClient client = new OkHttpClient();
+//        String url = "https://fcm.googleapis.com/fcm/send";
+//        RequestBody body = RequestBody.create(jsonObject.toString(), JSON);
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .post(body)
+//                .header("Authorization", "Bearer " + getString(R.string.api_key))
+//                .build();
+//        client.newCall(request).enqueue(new Callback() {
+//            @Override
+//            public void onFailure(@NonNull Call call, @NonNull IOException e) {}
+//            @Override
+//            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {}
+//        });
     }
 }

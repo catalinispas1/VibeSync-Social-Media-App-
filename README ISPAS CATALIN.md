@@ -23,6 +23,6 @@ VibeSync is a social media app designed to connect users through shared interest
 
 To get started with VibeSync, follow these steps:
 
-1. [Download](#) and install the VibeSync app on your device.
+1. Download and install the VibeSync app on your device.
 2. Sign up or log in with your existing account.
 3. Explore the personalized feed, connect with friends, and start sharing your vibes!
